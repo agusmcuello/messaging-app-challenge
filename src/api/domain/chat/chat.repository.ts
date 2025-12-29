@@ -1,0 +1,39 @@
+import { HttpService } from "../../baseRepositories/api/http/axios/axios-http-service";
+import ApiRepository from "../../baseRepositories/api/respository";
+import { RequestData } from "../../http/Http";
+import Paginated from "../../types/paginated";
+
+export default class ChatRepository extends ApiRepository {
+  constructor() {
+    super("messages");
+  }
+
+  public async getEvents<T>(
+    limit: number,
+    offset: number
+  ): Promise<Paginated<T>> {
+    const data: RequestData = {
+      endpoint: `${this.endpoint}`,
+      params: { limit, offset },
+    };
+
+    return HttpService.getAsync(data);
+  }
+
+  public async sendTextMessage<T>(text: string): Promise<T> {
+    const data: RequestData = {
+      endpoint: `${this.endpoint}/send-text`,
+      body: { text },
+    };
+
+    return HttpService.postAsync(data);
+  }
+
+  public async sendImageMessage<T>(): Promise<T> {
+    const data: RequestData = {
+      endpoint: `${this.endpoint}/send-text`,
+    };
+
+    return HttpService.postAsync(data);
+  }
+}
