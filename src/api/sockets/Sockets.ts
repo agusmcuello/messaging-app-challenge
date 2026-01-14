@@ -1,5 +1,4 @@
 import io, { Socket as SocketType } from "socket.io-client";
-
 import { config } from "../config";
 import { SocketCallback, SocketEvent } from "../types/socket";
 
@@ -7,11 +6,28 @@ export class Socket {
   private static socket?: SocketType;
 
   static start() {
-    Socket.socket = io(`${config.socketUrl}`);
+    if (Socket.socket) return;
+
+    Socket.socket = io(`${config.socketUrl}`, {
+      transports: ["websocket"],
+      autoConnect: true,
+    });
 
     Socket.socket.on("connect", () => {
-      Socket.socket?.emit("join-chat", { username: "testuser" });
+      console.log("✅ Socket conectado con ID:", Socket.socket?.id);
     });
+
+    Socket.socket.on("connect_error", (err) => {
+      console.error("❌ Error de conexión Socket:", err.message);
+    });
+  }
+
+  // Method for emitting events from the Provider (e.g., join-chat)
+  static emit(event: string, data: any) {
+    if (!Socket.socket) {
+      this.start();
+    }
+    Socket.socket?.emit(event, data);
   }
 
   static async listen<T>(event: SocketEvent, callback: SocketCallback<T>) {
@@ -19,40 +35,21 @@ export class Socket {
       Socket.start();
     }
 
-    return new Promise<void>((resolve) => {
-      const setupListener = () => {
-        Socket.socket?.on(event, (data) => {
-          callback(data);
-        });
-        resolve();
-      };
-
-      if (Socket.socket?.connected) {
-        setupListener();
-      } else {
-        Socket.socket?.on("connect", setupListener);
-      }
+    Socket.socket?.on(event, (data) => {
+      callback(data);
     });
   }
 
-  static async stop<T>(event?: SocketEvent, callback?: SocketCallback<T>) {
-    if (!Socket.socket) {
-      return;
+  static async stop<T>(event: SocketEvent, callback?: SocketCallback<T>) {
+    if (Socket.socket) {
+      Socket.socket.off(event, callback);
     }
-
-    Socket.socket.off(event, callback);
-  }
-
-  static isConnected() {
-    return !!Socket.socket;
   }
 
   static async disconnect() {
-    Socket.socket?.disconnect();
-    Socket.socket = undefined;
-  }
-
-  static async removeAllListeners(event?: SocketEvent) {
-    Socket.socket?.removeAllListeners(event);
+    if (Socket.socket) {
+      Socket.socket.disconnect();
+      Socket.socket = undefined;
+    }
   }
 }

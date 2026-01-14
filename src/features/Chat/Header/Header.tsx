@@ -1,40 +1,70 @@
-import React from "react";
-import { StyleSheet } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons"; // Expo viene con iconos por defecto
+import { useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
-import { ThemedView } from "../../../components/ThemedView/ThemedView";
-import { Color } from "../../../constants/colors";
+import { Text } from "../../../components/Text/Text";
 import Avatar from "./Avatar";
-import Data from "./Data";
 
-function Header() {
-  const insets = useSafeAreaInsets();
+export default function Header() {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await SecureStore.deleteItemAsync("userToken");
+      console.log("Sesión cerrada manualmente");
+
+      router.replace("/");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
 
   return (
-    <ThemedView
-      style={[
-        styles.headerContainer,
-        { paddingTop: insets.top + 8, height: 80 + insets.top },
-      ]}
-    >
-      <Avatar />
+    <View style={styles.container}>
+      <View style={styles.userInfo}>
+        <Avatar />
+        <View style={styles.textContainer}>
+          <Text style={styles.name}>Agustin Levin</Text>
+          <Text style={styles.status}>Últ. vez. hoy 18:59 hs.</Text>
+        </View>
+      </View>
 
-      <Data />
-    </ThemedView>
+      {/* LOGOUT */}
+      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+        <Ionicons name="log-out-outline" size={24} color="#fff" />
+      </TouchableOpacity>
+    </View>
   );
 }
 
-export default React.memo(Header);
-
 const styles = StyleSheet.create({
-  headerContainer: {
+  container: {
+    flexDirection: "row",
+    backgroundColor: "#003049",
+    padding: 15,
+    paddingTop: 50,
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  userInfo: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 15,
-    width: "100%",
-    backgroundColor: Color.PRIMARY_500,
-    height: 80,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  },
+  textContainer: {
+    marginLeft: 10,
+  },
+  name: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  status: {
+    color: "#ccc",
+    fontSize: 12,
+    fontStyle: "italic",
+  },
+  logoutButton: {
+    padding: 5,
   },
 });

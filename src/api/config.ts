@@ -6,7 +6,7 @@ const getApiUrl = () => {
   } else if (Platform.OS === "android") {
     return "http://10.0.2.2:3000/api"; // Android emulator
   } else {
-    return "http://192.168.0.222:3000/api"; // Dispositivos físicos y web
+    return "http://192.168.1.72:3000/api"; // Dispositivos físicos y web
   }
 };
 
@@ -16,7 +16,7 @@ const getSocketUrl = () => {
   } else if (Platform.OS === "android") {
     return "http://10.0.2.2:3000"; // Android emulator
   } else {
-    return "http://192.168.0.222:3000"; // Dispositivos físicos y web
+    return "http://192.168.1.72:3000"; // Dispositivos físicos y web
   }
 };
 

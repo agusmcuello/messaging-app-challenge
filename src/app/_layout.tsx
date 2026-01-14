@@ -4,47 +4,75 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
+import * as SecureStore from "expo-secure-store"; // Importar para borrado físico
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { Provider } from "react-redux";
 import { HttpStatusCode } from "../api/baseRepositories/api/http/constants";
-import { BaseError } from "../api/errors/BaseError";
 import { useColorScheme } from "../hooks/useColorSchemeWeb";
+import SocketProvider from "../providers/socketProvider";
 import { store } from "../redux/store";
-import SocketProvider from "./socketProvider";
+
+// Prevent auto-hiding
+SplashScreen.preventAutoHideAsync();
+
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
+  const router = useRouter();
+  const segments = useSegments(); // Track current route
+  const [isReady, setIsReady] = useState(false);
   const colorScheme = useColorScheme();
 
   const clearStorage = async () => {
-    // NOTE: Clear any stored data, e.g., AsyncStorage, Redux store, etc.
-  };
-
-  const defaultOnError = (error: BaseError) => {
-    if (error) {
-      const { status } = error;
-      if (status === HttpStatusCode.UNAUTHORIZED) {
-        return clearStorage();
-      }
-
-      // NOTE: Handle other global errors here, f.e.g. show a toast notification
+    try {
+      console.log("Limpiando sesión por token inválido...");
+      await SecureStore.deleteItemAsync("userToken");
+      router.replace("/");
+    } catch (e) {
+      console.error("Error al limpiar storage", e);
     }
   };
 
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        enabled: false,
-      },
+  // onError handler
+  useEffect(() => {
+    queryClient.setDefaultOptions({
       mutations: {
-        onError: (e) => {
-          defaultOnError(e as BaseError);
+        onError: (error: any) => {
+          if (error?.status === HttpStatusCode.UNAUTHORIZED) {
+            clearStorage();
+          }
         },
       },
-    },
-  });
+    });
+  }, []);
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const token = await SecureStore.getItemAsync("userToken");
+        const inAuthGroup = segments[0] === "chat";
+
+        if (token && !inAuthGroup) {
+          router.replace("/chat");
+        } else if (!token && inAuthGroup) {
+          router.replace("/");
+        }
+      } finally {
+        setIsReady(true);
+        // Hide SplashScreen
+        await SplashScreen.hideAsync();
+      }
+    };
+
+    initializeAuth();
+  }, [segments]);
+
+  if (!isReady) return null;
 
   return (
     <Provider store={store}>
@@ -56,6 +84,7 @@ export default function RootLayout() {
             <GestureHandlerRootView>
               <Stack>
                 <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="chat" options={{ headerShown: false }} />
               </Stack>
 
               <StatusBar style="light" />

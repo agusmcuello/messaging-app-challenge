@@ -14,9 +14,10 @@
     "@expo/vector-icons": "^15.0.3",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
-    "@react-navigation/native": "^7.1.8",
+    "@react-navigation/native": "^7.1.27",
     "@reduxjs/toolkit": "^2.11.2",
     "@tanstack/react-query": "^5.90.12",
+    "@urql/core": "^6.0.1",
     "axios": "^1.13.2",
     "date-fns": "^4.1.0",
     "eslint-plugin-prettier": "^5.5.4",
@@ -27,6 +28,7 @@
     "expo-image": "~3.0.11",
     "expo-linking": "~8.0.10",
     "expo-router": "~6.0.20",
+    "expo-secure-store": "~15.0.8",
     "expo-splash-screen": "~31.0.12",
     "expo-status-bar": "~3.0.9",
     "expo-symbols": "~1.0.8",
@@ -45,12 +47,9 @@
     "redux": "^5.0.1",
     "socket.io-client": "^4.8.3"
   },
-  "overrides": {
-    "@types/react": "18.2.45"
-  },
   "devDependencies": {
-    "@types/react": "18.2.45",
-    "@types/react-native": "0.72.8",
+    "@types/react": "^18.2.45",
+    "@types/react-native": "^0.72.8",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "typescript": "~5.9.2"
