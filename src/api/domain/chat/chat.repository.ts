@@ -29,9 +29,25 @@ export default class ChatRepository extends ApiRepository {
     return HttpService.postAsync(data);
   }
 
-  public async sendImageMessage<T>(): Promise<T> {
+  public async sendImageMessage<T>(imageUri: string): Promise<T> {
+    const formData = new FormData();
+
+    const cleanUri = imageUri.startsWith("file://")
+      ? imageUri
+      : `file://${imageUri}`;
+
+    const fileToUpload = {
+      uri: cleanUri,
+      name: "photo.jpg",
+      type: "image/jpeg",
+    };
+
+    // @ts-ignore
+    formData.append("image", fileToUpload);
+
     const data: RequestData = {
-      endpoint: `${this.endpoint}/send-text`,
+      endpoint: `${this.endpoint}/send-image`,
+      body: formData,
     };
 
     return HttpService.postAsync(data);

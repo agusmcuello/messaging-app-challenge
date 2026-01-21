@@ -33,13 +33,23 @@ export class HttpService {
     requestAsync: HttpRequest,
     data: RequestData
   ) {
-    data.headers = data.headers ?? { "Content-Type": ContentType.JSON };
+    const isFormData =
+      data.body && typeof data.body === "object" && "_parts" in data.body;
+
+    if (isFormData) {
+      data.headers = {
+        ...data.headers,
+        "Content-Type": "multipart/form-data" as any,
+      };
+    } else {
+      data.headers = data.headers ?? { "Content-Type": ContentType.JSON };
+    }
+
     data.params = data.params ?? {};
     data.body = data.body ?? {};
 
     try {
       const response = await requestAsync(data);
-
       return response.body;
     } catch (e: any) {
       const { response } = e as AxiosError<any, any>;
